@@ -1,0 +1,22 @@
+{
+  "name": "wave-scrape",
+  "version": "1.0.0",
+  "description": "Datascraping of Wave Accounting to generate per account profit and loss statements.",
+  "main": "node-generate.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Wave",
+    "Accounting",
+    "Data",
+    "Scrape",
+    "Report",
+    "Generation"
+  ],
+  "author": "Michael Paccione",
+  "license": "ISC",
+  "dependencies": {
+    "chartjs-node-canvas": "^4.1.6"
+  }
+}
