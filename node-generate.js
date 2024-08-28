@@ -1,9 +1,19 @@
-const { join } = require('path');
 const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
+const { join } = require('path');
 const fs = require('fs');
 
 class reportsByAccount {
   constructor() {
+    this.getCurrencyFormat = (val) => {
+      return val.toLocaleString(
+        'en-US',
+        {
+          style: 'currency',
+          currency: 'USD',
+        }
+      ).trim()
+    }
+
     this.getRandomColor = () => {
       const letters = '0123456789ABCDEF';
       let color = '#';
@@ -11,45 +21,30 @@ class reportsByAccount {
         color += letters[Math.floor(Math.random() * 16)];
       }
       return color;
-    },
-      this.getCurrencyFormat = (val) => {
-        return val.toLocaleString(
-          'en-US',
-          {
-            style: 'currency',
-            currency: 'USD',
-          }
-        ).trim()
-      }
+    }
 
     this.generateReport = ({ account, chartData, path, type }) => {
       const height = 720;
       const width = 1080;
       const canvasRenderService = new ChartJSNodeCanvas({ backgroundColour: 'white', height, width });
 
-      const configuration = type === 'bar' ? {
-        type: 'bar',
+      const configuration = {
         data: chartData,
+        type,
         options: {
           layout: {
             padding: {
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: 20
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: 20
             }
-        },
+          },
           plugins: {
             legend: {
               position: 'top',
             },
-            tooltip: {
-              callbacks: {
-                label: (tooltipItem) => {
-                  return `${account}: ${data.monthly} / ${data.annual}`;
-                },
-              },
-            },
+
           },
           scales: {
             x: {
@@ -63,53 +58,36 @@ class reportsByAccount {
                 display: true,
                 text: 'Value',
               },
-              ticks: {
-                maxTicksLimit: 24 // increase tick count to double the number of ticks
-              }
             },
           },
         },
-      } : {
-        type: 'line',
-        data: chartData,
-        options: {
-          layout: {
-            padding: {
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: 20
-            }
-        },
-          plugins: {
-            legend: {
-              labels: {
-                boxWidth: 20,
-                boxHeight: 20,
-                usePointStyle: true
-              }
-            }
-          },
-          scales: {
-            x: {
-              type: 'category',
-              title: {
-                display: true,
-                text: 'Category'
-              },
+      }
+
+      if (type === 'bar') {
+        configuration.options.plugins.tooltip = {
+          callbacks: {
+            label: (tooltipItem) => {
+              return `${account}: ${data.monthly} / ${data.annual}`;
             },
-            y: {
-              title: {
-                display: true,
-                text: 'Value'
-              },
-              ticks: {
-                maxTicksLimit: 36 // increase tick count to double the number of ticks
-              }
-            }
+          },
+        };
+        configuration.options.scales.y.ticks = {
+          maxTicksLimit: 24 // increase tick count to double the number of ticks
+        }
+      }
+
+      if (type === 'line') {
+        configuration.options.plugins.legend = {
+          labels: {
+            boxWidth: 20,
+            boxHeight: 20,
+            usePointStyle: true
           }
         }
-      };
+        configuration.options.scales.y.ticks = {
+          maxTicksLimit: 36 // increase tick count to double the number of ticks
+        }
+      }
 
       try {
         canvasRenderService.renderToBuffer(configuration).then(image => {
@@ -121,7 +99,7 @@ class reportsByAccount {
       }
     }
 
-    const readJsonFiles = (dir) => {
+    this.readJsonFiles = (dir) => {
       const files = fs.readdirSync(dir);
       const fileDataArray = [];
 
@@ -135,7 +113,7 @@ class reportsByAccount {
     }
 
     this.dir = `${__dirname}/data/2023`;
-    this.result = readJsonFiles(this.dir);
+    this.result = this.readJsonFiles(this.dir);
   }
 
   async generateCombinedReport() {
@@ -178,7 +156,6 @@ class reportsByAccount {
     }))
 
     const chartData = {
-      labels: [...Object.keys(combinedData.expense), ...Object.keys(combinedData.income)],
       datasets: [{
         label: `Portfolio: ${this.getCurrencyFormat(data.map(d => d.monthly).reduce((acc, curr) => acc + curr, 0))
           } M | ${this.getCurrencyFormat(data.map(d => d.annual).reduce((acc, curr) => acc + curr, 0))} YR`,
@@ -188,6 +165,7 @@ class reportsByAccount {
           return val >= 0 ? '#52c41a' : '#f5222d'
         }
       }],
+      labels: [...Object.keys(combinedData.expense), ...Object.keys(combinedData.income)],
     };
 
     this.generateReport({ account: 'combined_2023', chartData, path: 'output', type: 'bar' })
@@ -199,7 +177,6 @@ class reportsByAccount {
       const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
       const chartData = {
-        labels: [...Object.keys(data.expense), ...Object.keys(data.income)],
         datasets: [{
           label: `${data.account.split('-')[0].trim()}: ${this.getCurrencyFormat(data.monthly)} M | ${this.getCurrencyFormat(data.annual)} YR`,
           data: [...Object.values(data.expense), ...Object.values(data.income)],
@@ -208,6 +185,7 @@ class reportsByAccount {
             return val >= 0 ? '#52c41a' : '#f5222d'
           }
         }],
+        labels: [...Object.keys(data.expense), ...Object.keys(data.income)],
       };
 
       this.generateReport({ account: data.account, chartData, path: 'output/2023', type: 'bar' })
@@ -216,8 +194,8 @@ class reportsByAccount {
 
   async generateComparisonReport() {
     const chartData = {
-      labels: [],
       datasets: [],
+      labels: [],
     };
     const colorData = {}
 
@@ -238,7 +216,6 @@ class reportsByAccount {
         label: fileData.account.split('-')[0].trim(),
         data: [...Object.values(fileData.expense), ...Object.values(fileData.income)].map((d, idx) => { return { x: chartData.labels[idx], y: d } }), fill: false, pointRadius: 6, pointBackgroundColor: colorData[fileData.account]
       })
-
     })
 
     this.generateReport({ account: 'comparison_2023', chartData, path: 'output', type: 'line' })
@@ -248,8 +225,8 @@ class reportsByAccount {
 (function () {
   const reports = new reportsByAccount
   reports.generateCombinedReport();
-  reports.generateIndividualReports();
   reports.generateComparisonReport();
+  reports.generateIndividualReports();
 })();
 
 
