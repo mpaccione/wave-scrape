@@ -21,15 +21,24 @@ class reportsByAccount {
           }
         ).trim()
       }
+
     this.generateReport = ({ account, chartData, path, type }) => {
-      const height = 600;
-      const width = 800;
+      const height = 720;
+      const width = 1080;
       const canvasRenderService = new ChartJSNodeCanvas({ backgroundColour: 'white', height, width });
 
       const configuration = type === 'bar' ? {
         type: 'bar',
         data: chartData,
         options: {
+          layout: {
+            padding: {
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 20
+            }
+        },
           plugins: {
             legend: {
               position: 'top',
@@ -52,8 +61,11 @@ class reportsByAccount {
             y: {
               title: {
                 display: true,
-                text: 'USD',
+                text: 'Value',
               },
+              ticks: {
+                maxTicksLimit: 24 // increase tick count to double the number of ticks
+              }
             },
           },
         },
@@ -61,10 +73,39 @@ class reportsByAccount {
         type: 'line',
         data: chartData,
         options: {
+          layout: {
+            padding: {
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 20
+            }
+        },
+          plugins: {
+            legend: {
+              labels: {
+                boxWidth: 20,
+                boxHeight: 20,
+                usePointStyle: true
+              }
+            }
+          },
           scales: {
             x: {
-              type: 'linear',
-              position: 'bottom'
+              type: 'category',
+              title: {
+                display: true,
+                text: 'Category'
+              },
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Value'
+              },
+              ticks: {
+                maxTicksLimit: 36 // increase tick count to double the number of ticks
+              }
             }
           }
         }
@@ -95,8 +136,6 @@ class reportsByAccount {
 
     this.dir = `${__dirname}/data/2023`;
     this.result = readJsonFiles(this.dir);
-
-    console.log(this.result)
   }
 
   async generateCombinedReport() {
@@ -109,8 +148,10 @@ class reportsByAccount {
 
       data.push(fileData)
 
+      // get unique category keys
       const labelObj = {}
 
+      // values for flexibility
       Object.keys(fileData.expense).forEach(k => labelObj[k] = 'expense')
       Object.keys(fileData.income).forEach(k => labelObj[k] = 'income')
 
@@ -120,6 +161,7 @@ class reportsByAccount {
     const combinedData = {}
     const dataKeys = ['expense', 'income']
 
+    // sum values
     dataKeys.forEach((type => {
       data.forEach(d => Object.entries(d[type]).forEach(([key, val]) => {
         if (!combinedData.hasOwnProperty(type)) {
@@ -159,7 +201,7 @@ class reportsByAccount {
       const chartData = {
         labels: [...Object.keys(data.expense), ...Object.keys(data.income)],
         datasets: [{
-          label: `${data.account}: ${data.monthly} | ${data.annual}`,
+          label: `${data.account.split('-')[0].trim()}: ${this.getCurrencyFormat(data.monthly)} M | ${this.getCurrencyFormat(data.annual)} YR`,
           data: [...Object.values(data.expense), ...Object.values(data.income)],
           backgroundColor: function (ctx) {
             const val = ctx.raw;
@@ -177,30 +219,26 @@ class reportsByAccount {
       labels: [],
       datasets: [],
     };
+    const colorData = {}
 
     fs.readdirSync(this.dir).forEach(f => {
       const filePath = join(this.dir, f);
       const fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
-      // ['expense', 'income'].forEach((type => {
-      //   Object.entries(fileData[type]).forEach(([key, val]) => {
-      //     if (!data.hasOwnProperty(type)) {
-      //       data[type] = {}
-      //     }
+      // set colors by account
+      if (!colorData.hasOwnProperty(fileData.account)) {
+        colorData[fileData.account] = this.getRandomColor();
+      }
 
-      //     if (!data[type].hasOwnProperty(key)) {
-      //       data[type][key] = 0
-      //     }
+      const fileLabels = [...Object.keys(fileData.expense), ...Object.keys(fileData.income)]
 
-      //     data[type][key] += val
-      //   });
-      // }))
-
-      chartData.labels = [...Object.keys(fileData.expense), ...Object.keys(fileData.income)]
-      console.log([...Object.values(fileData.expense), ...Object.values(fileData.income)].map((d, idx) => { return { x: chartData.labels[idx], y: d } }))
+      chartData.labels = fileLabels
       chartData.datasets.push({
-        borderColor: () => this.getRandomColor(), label: fileData.account, data: [...Object.values(fileData.expense), ...Object.values(fileData.income)].map((d, idx) => { return { x: chartData.labels[idx], y: d } }), fill: false, tension: 0.1
+        borderColor: 'transparent',
+        label: fileData.account.split('-')[0].trim(),
+        data: [...Object.values(fileData.expense), ...Object.values(fileData.income)].map((d, idx) => { return { x: chartData.labels[idx], y: d } }), fill: false, pointRadius: 6, pointBackgroundColor: colorData[fileData.account]
       })
+
     })
 
     this.generateReport({ account: 'comparison_2023', chartData, path: 'output', type: 'line' })

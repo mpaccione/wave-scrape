@@ -4,6 +4,8 @@
   "description": "Datascraping of Wave Accounting to generate per account profit and loss statements.",
   "main": "node-generate.js",
   "scripts": {
+    "gen": "node node-generate.js",
+    "scrape": "node dom-scrape.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
