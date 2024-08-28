@@ -24,8 +24,13 @@ Due to software limitations, connected accounts are only exportable in credit/de
     t.downloadStatement();
 ```
 
+6. Move .json files into `./data/{YEAR}`
 
-### ~/downloads/\*.json -> ./data/{YEAR}/\*.json -> .json output 
+## node-generate.js
+
+1. `npm run gen`
+
+### ./data/{YEAR}/\*.json -> .json output 
 ```json
 {
     "account": "7171 Purple Thistle - 1844",
@@ -45,10 +50,6 @@ Due to software limitations, connected accounts are only exportable in credit/de
     "monthly": -915.6016666666668
 }
 ```
-
-## node-generate.js
-
-1. `npm run gen`
 
 ### ./output/{YEAR}/\*.jpg -> jpg output 
 
