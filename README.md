@@ -25,7 +25,7 @@ Due to software limitations, connected accounts are only exportable in credit/de
 ```
 
 
-### ~/downloads/*.json -> ./data/{YEAR}/*.json -> .json output 
+### ~/downloads/\*.json -> ./data/{YEAR}/\*.json -> .json output 
 ```json
 {
     "account": "7171 Purple Thistle - 1844",
@@ -50,9 +50,9 @@ Due to software limitations, connected accounts are only exportable in credit/de
 
 1. `npm run gen`
 
-### ./output/{YEAR}/*.jpg -> jpg output 
+### ./output/{YEAR}/\*.jpg -> jpg output 
 
-![Individual Account .jpg](docs/5540 Bonita Village - 3433.jpg)
+![Individual Account .jpg](docs/5540%20Bonita%20Village%20-%203433.jpg)
 
 ### ./output/combined_{YEAR}.jpg -> jpg output 
 
