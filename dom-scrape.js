@@ -19,10 +19,10 @@ class transactionsByAccount {
 
             if (r.querySelector(`.transactions-list-v2__row__amount--positive`)) {
                 amount = r.querySelector(`.transactions-list-v2__row__amount--positive`).innerText;
-                amount = format(amount, idx)
+                amount = format(amount, idx);
             } else {
                 amount = r.querySelector(`.transactions-list-v2__row__amount`).innerText;
-                amount = format(amount, idx) * -1
+                amount = format(amount, idx) * -1;
             }
 
             category = r.querySelector(`.transactions-list-v2__row__category`).innerText;
@@ -38,16 +38,16 @@ class transactionsByAccount {
         const report = {}
         this.rows.filter(f).forEach(r => {
             if (r.category === 'Owner Investment / Drawings' || r.category === "Owner's Equity") {
-                return console.warn(r)
+                return console.warn(r);
             }
 
             if (!report.hasOwnProperty(r.category)) {
-                report[r.category] = r.amount
+                report[r.category] = r.amount;
             } else {
-                report[r.category] += r.amount
+                report[r.category] += r.amount;
             }
         })
-        return report
+        return report;
     }
 
     downloadStatement() {
@@ -55,7 +55,7 @@ class transactionsByAccount {
         const expenseSum = Object.values(expense).reduce((acc, curr) => acc + curr, 0)
         const income = this.getStatement((r) => r.amount > 0)
         const incomeSum = Object.values(income).reduce((acc, curr) => acc + curr, 0)
-        
+
         const annual = expenseSum + incomeSum
         const monthly = annual / 12
 

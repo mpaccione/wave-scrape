@@ -94,14 +94,14 @@ class reportsByAccount {
           fs.writeFileSync(`./${path}/${account}.jpg`, image);
           console.log(`${account} chart generated successfully`);
         })
-      } catch (error) {
-        console.error('Error generating chart image:', error);
+      } catch (err) {
+        console.error('Error generating chart image:', err);
       }
     }
 
     this.readJsonFiles = (dir) => {
-      const files = fs.readdirSync(dir);
       const fileDataArray = [];
+      const files = fs.readdirSync(dir);
 
       files.forEach(file => {
         const filePath = join(dir, file);
@@ -110,6 +110,12 @@ class reportsByAccount {
       });
 
       return fileDataArray;
+    }
+
+    this.saveJsonFile = ({ json, path }) => {
+      fs.writeFile(`${path}/combined_2023.json`, JSON.stringify(json, null, 2), 'utf8', (err) =>
+        err && console.error('Error writing file:', err) || console.log('combined_2023 json generated successfully')
+      );
     }
 
     this.dir = `${__dirname}/data/2023`;
@@ -151,23 +157,34 @@ class reportsByAccount {
         }
 
         combinedData[type][key] += parseFloat(val)
-      })
-      )
+      }))
     }))
 
     const chartData = {
       datasets: [{
-        label: `Portfolio: ${this.getCurrencyFormat(data.map(d => d.monthly).reduce((acc, curr) => acc + curr, 0))
-          } M | ${this.getCurrencyFormat(data.map(d => d.annual).reduce((acc, curr) => acc + curr, 0))} YR`,
-        data: [...Object.values(combinedData.expense), ...Object.values(combinedData.income)],
         backgroundColor: function (ctx) {
           const val = ctx.raw;
           return val >= 0 ? '#52c41a' : '#f5222d'
-        }
+        },
+        data: [...Object.values(combinedData.expense), ...Object.values(combinedData.income)],
+        label: `Portfolio: ${this.getCurrencyFormat(data.map(d => d.monthly).reduce((acc, curr) => acc + curr, 0))
+          } M | ${this.getCurrencyFormat(data.map(d => d.annual).reduce((acc, curr) => acc + curr, 0))} YR`,
       }],
       labels: [...Object.keys(combinedData.expense), ...Object.keys(combinedData.income)],
     };
 
+    // sum total values
+    const totalExpense = Object.values(combinedData.expense).reduce((a, v) => a + v, 0)
+    const totalIncome = Object.values(combinedData.income).reduce((a, v) => a + v, 0);
+
+    this.saveJsonFile({
+      json: {
+        ...combinedData, 
+        annual: totalIncome + totalExpense, 
+        monthly: (totalIncome + totalExpense) / 12
+      }, 
+      path: 'data'
+    })
     this.generateReport({ account: 'combined_2023', chartData, path: 'output', type: 'bar' })
   }
 
@@ -178,12 +195,12 @@ class reportsByAccount {
 
       const chartData = {
         datasets: [{
-          label: `${data.account.split('-')[0].trim()}: ${this.getCurrencyFormat(data.monthly)} M | ${this.getCurrencyFormat(data.annual)} YR`,
-          data: [...Object.values(data.expense), ...Object.values(data.income)],
           backgroundColor: function (ctx) {
             const val = ctx.raw;
             return val >= 0 ? '#52c41a' : '#f5222d'
-          }
+          },
+          data: [...Object.values(data.expense), ...Object.values(data.income)],
+          label: `${data.account.split('-')[0].trim()}: ${this.getCurrencyFormat(data.monthly)} M | ${this.getCurrencyFormat(data.annual)} YR`,
         }],
         labels: [...Object.keys(data.expense), ...Object.keys(data.income)],
       };
@@ -213,8 +230,11 @@ class reportsByAccount {
       chartData.labels = fileLabels
       chartData.datasets.push({
         borderColor: 'transparent',
+        data: [...Object.values(fileData.expense), ...Object.values(fileData.income)].map((d, idx) => { return { x: chartData.labels[idx], y: d } }), 
+        fill: false, 
         label: fileData.account.split('-')[0].trim(),
-        data: [...Object.values(fileData.expense), ...Object.values(fileData.income)].map((d, idx) => { return { x: chartData.labels[idx], y: d } }), fill: false, pointRadius: 6, pointBackgroundColor: colorData[fileData.account]
+        pointBackgroundColor: colorData[fileData.account],
+        pointRadius: 6, 
       })
     })
 
@@ -224,9 +244,9 @@ class reportsByAccount {
 
 (function () {
   const reports = new reportsByAccount
+  reports.generateIndividualReports();
   reports.generateCombinedReport();
   reports.generateComparisonReport();
-  reports.generateIndividualReports();
 })();
 
 
