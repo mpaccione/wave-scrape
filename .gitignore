@@ -2,4 +2,5 @@ assets/*
 data/*
 node_modules
 output/*
+reports/*
 
