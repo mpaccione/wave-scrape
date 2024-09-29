@@ -19,6 +19,7 @@
   "author": "Michael Paccione",
   "license": "ISC",
   "dependencies": {
-    "chartjs-node-canvas": "^4.1.6"
+    "chartjs-node-canvas": "^4.1.6",
+    "pdfkit": "^0.15.0"
   }
 }

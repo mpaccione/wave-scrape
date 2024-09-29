@@ -1,6 +1,7 @@
 const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 const { join } = require('path');
 const fs = require('fs');
+const PDFDocument = require('pdfkit');
 
 class reportsByAccount {
   constructor() {
@@ -23,7 +24,7 @@ class reportsByAccount {
       return color;
     }
 
-    this.generateReport = ({ account, chartData, path, type }) => {
+    this.generateReport = async ({ account, chartData, path, type, pdfData = false }) => {
       const height = 720;
       const width = 1080;
       const canvasRenderService = new ChartJSNodeCanvas({ backgroundColour: 'white', height, width });
@@ -90,10 +91,30 @@ class reportsByAccount {
       }
 
       try {
-        canvasRenderService.renderToBuffer(configuration).then(image => {
-          fs.writeFileSync(`./${path}/${account}.jpg`, image);
-          console.log(`${account} chart generated successfully`);
-        })
+        if (pdfData) {
+          const doc = new PDFDocument();
+          const imageBuffer = await canvasRenderService.renderToBuffer(chartData);
+
+          // Add text and data from JSON
+          doc.text(account);
+          doc.text(JSON.stringify(pdfData, null, 2)); // Add extracted JSON data
+
+          // Add chart image
+          doc.image(imageBuffer, 300, 300, {
+            fit: [500, 400],
+            align: 'center',
+            valign: 'center'
+          });
+
+          // Save the PDF to a file
+          doc.pipe(fs.createWriteStream(`./${path}/${account}.pdf`));
+          doc.end();
+        } else {
+          canvasRenderService.renderToBuffer(configuration).then(image => {
+            fs.writeFileSync(`./${path}/${account}.jpg`, image);
+            console.log(`${account} chart generated successfully`);
+          })
+        }
       } catch (err) {
         console.error('Error generating chart image:', err);
       }
@@ -179,20 +200,20 @@ class reportsByAccount {
 
     this.saveJsonFile({
       json: {
-        ...combinedData, 
-        annual: totalIncome + totalExpense, 
+        ...combinedData,
+        annual: totalIncome + totalExpense,
         monthly: (totalIncome + totalExpense) / 12
-      }, 
+      },
       path: 'data'
     })
-    this.generateReport({ account: 'combined_2023', chartData, path: 'output', type: 'bar' })
+    this.generateReport({ account: 'combined_2023', chartData, path: 'assets', type: 'bar' })
+    this.generateReport({ account: 'combined_2023', chartData, path: 'reports', pdfData: combinedData, type: 'bar' })
   }
 
   async generateIndividualReports() {
     fs.readdirSync(this.dir).forEach(f => {
       const filePath = join(this.dir, f);
       const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-
       const chartData = {
         datasets: [{
           backgroundColor: function (ctx) {
@@ -205,7 +226,8 @@ class reportsByAccount {
         labels: [...Object.keys(data.expense), ...Object.keys(data.income)],
       };
 
-      this.generateReport({ account: data.account, chartData, path: 'output/2023', type: 'bar' })
+      this.generateReport({ account: data.account, chartData, path: 'assets/2023', type: 'bar' })
+      this.generateReport({ account: data.account, chartData, path: 'reports/2023', pdfData: data, type: 'bar' })
     })
   }
 
@@ -215,6 +237,7 @@ class reportsByAccount {
       labels: [],
     };
     const colorData = {}
+    let data = [];
 
     fs.readdirSync(this.dir).forEach(f => {
       const filePath = join(this.dir, f);
@@ -225,20 +248,22 @@ class reportsByAccount {
         colorData[fileData.account] = this.getRandomColor();
       }
 
+      data = [...Object.values(fileData.expense), ...Object.values(fileData.income)]
       const fileLabels = [...Object.keys(fileData.expense), ...Object.keys(fileData.income)]
 
       chartData.labels = fileLabels
       chartData.datasets.push({
         borderColor: 'transparent',
-        data: [...Object.values(fileData.expense), ...Object.values(fileData.income)].map((d, idx) => { return { x: chartData.labels[idx], y: d } }), 
-        fill: false, 
+        data: data.map((d, idx) => { return { x: chartData.labels[idx], y: d } }),
+        fill: false,
         label: fileData.account.split('-')[0].trim(),
         pointBackgroundColor: colorData[fileData.account],
-        pointRadius: 6, 
+        pointRadius: 6,
       })
     })
 
-    this.generateReport({ account: 'comparison_2023', chartData, path: 'output', type: 'line' })
+    this.generateReport({ account: 'comparison_2023', chartData, path: 'assets', type: 'line' })
+    this.generateReport({ account: 'comparison_2023', chartData, path: 'reports', pdfData: data, type: 'line' })
   }
 }
 

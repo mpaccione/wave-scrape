@@ -51,15 +51,15 @@ Due to software limitations, connected accounts are only exportable in credit/de
 }
 ```
 
-### ./output/{YEAR}/\*.jpg -> jpg output 
+### ./assets/{YEAR}/\*.jpg -> jpg assets 
 
 ![Individual Account .jpg](docs/5540%20Bonita%20Village%20-%203433.jpg)
 
-### ./output/combined_{YEAR}.jpg -> jpg output 
+### ./assets/combined_{YEAR}.jpg -> jpg assets 
 
 ![Combined Accounts .jpg](docs/combined_2023.jpg)
 
-### ./output/comparison_{YEAR}.jpg -> jpg output 
+### ./assets/comparison_{YEAR}.jpg -> jpg assets 
 
 ![Comparison Accounts .jpg](docs/comparison_2023.jpg)
 
