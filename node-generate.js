@@ -14,13 +14,54 @@ class reportsByAccount {
       ).trim()
     }
 
+    this.generatedColors = new Set();
+
     this.getRandomColor = () => {
-      const letters = '0123456789ABCDEF';
-      let color = '#';
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
+      const isColorTooClose = (hex1, hex2) => {
+        const hexToRgb = (hex) => {
+          const bigint = parseInt(hex.slice(1), 16);
+          return {
+            r: (bigint >> 16) & 255,
+            g: (bigint >> 8) & 255,
+            b: bigint & 255,
+          };
+        };
+    
+        const colorDistance = (rgb1, rgb2) => {
+          return Math.sqrt(
+            Math.pow(rgb1.r - rgb2.r, 2) +
+            Math.pow(rgb1.g - rgb2.g, 2) +
+            Math.pow(rgb1.b - rgb2.b, 2)
+          );
+        };
+    
+        const rgb1 = hexToRgb(hex1);
+        const rgb2 = hexToRgb(hex2);
+        return colorDistance(rgb1, rgb2) < 150; // Adjust threshold as needed
+      };
+    
+      while (true) {
+        // Generate a random color
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+    
+        // Check if the color is too close to any previously generated color
+        let tooClose = false;
+        for (let existingColor of this.generatedColors) {
+          if (isColorTooClose(color, existingColor)) {
+            tooClose = true;
+            break;
+          }
+        }
+    
+        if (!tooClose) {
+          this.generatedColors.add(color);
+          return color;
+        }
       }
-      return color;
     }
 
     this.generateReport = ({ account, chartData, path, type }) => {
