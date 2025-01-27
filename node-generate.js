@@ -113,12 +113,12 @@ class reportsByAccount {
     }
 
     this.saveJsonFile = ({ json, path }) => {
-      fs.writeFile(`${path}/combined_2023.json`, JSON.stringify(json, null, 2), 'utf8', (err) =>
-        err && console.error('Error writing file:', err) || console.log('combined_2023 json generated successfully')
+      fs.writeFile(`${path}/combined_2024.json`, JSON.stringify(json, null, 2), 'utf8', (err) =>
+        err && console.error('Error writing file:', err) || console.log('combined_2024 json generated successfully')
       );
     }
 
-    this.dir = `${__dirname}/data/2023`;
+    this.dir = `${__dirname}/data/2024`;
     this.result = this.readJsonFiles(this.dir);
   }
 
@@ -185,7 +185,7 @@ class reportsByAccount {
       }, 
       path: 'data'
     })
-    this.generateReport({ account: 'combined_2023', chartData, path: 'output', type: 'bar' })
+    this.generateReport({ account: 'combined_2024', chartData, path: 'output', type: 'bar' })
   }
 
   async generateIndividualReports() {
@@ -205,7 +205,7 @@ class reportsByAccount {
         labels: [...Object.keys(data.expense), ...Object.keys(data.income)],
       };
 
-      this.generateReport({ account: data.account, chartData, path: 'output/2023', type: 'bar' })
+      this.generateReport({ account: data.account, chartData, path: 'output/2024', type: 'bar' })
     })
   }
 
@@ -238,7 +238,7 @@ class reportsByAccount {
       })
     })
 
-    this.generateReport({ account: 'comparison_2023', chartData, path: 'output', type: 'line' })
+    this.generateReport({ account: 'comparison_2024', chartData, path: 'output', type: 'line' })
   }
 }
 
