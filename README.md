@@ -57,9 +57,9 @@ Due to software limitations, connected accounts are only exportable in credit/de
 
 ### ./assets/combined_{YEAR}.jpg -> jpg assets 
 
-![Combined Accounts .jpg](docs/combined_2023.jpg)
+![Combined Accounts .jpg](docs/combined_2025.jpg)
 
 ### ./assets/comparison_{YEAR}.jpg -> jpg assets 
 
-![Comparison Accounts .jpg](docs/comparison_2023.jpg)
+![Comparison Accounts .jpg](docs/comparison_2025.jpg)
 

@@ -92,19 +92,20 @@ class reportsByAccount {
 
       try {
         if (pdfData) {
-          const doc = new PDFDocument();
-          const imageBuffer = await canvasRenderService.renderToBuffer(chartData);
+          const doc = new PDFDocument({
+            layout: 'landscape'
+          });
+          const imageBuffer = await canvasRenderService.renderToBuffer(configuration);
 
           // Add text and data from JSON
           doc.text(account);
-          doc.text(JSON.stringify(pdfData, null, 2)); // Add extracted JSON data
-
           // Add chart image
-          doc.image(imageBuffer, 300, 300, {
+          doc.image(imageBuffer, {
             fit: [500, 400],
             align: 'center',
             valign: 'center'
           });
+          doc.text(JSON.stringify(pdfData, null, 2)); // Add extracted JSON data
 
           // Save the PDF to a file
           doc.pipe(fs.createWriteStream(`./${path}/${account}.pdf`));
@@ -134,12 +135,12 @@ class reportsByAccount {
     }
 
     this.saveJsonFile = ({ json, path }) => {
-      fs.writeFile(`${path}/combined_2023.json`, JSON.stringify(json, null, 2), 'utf8', (err) =>
-        err && console.error('Error writing file:', err) || console.log('combined_2023 json generated successfully')
+      fs.writeFile(`${path}/combined_2025.json`, JSON.stringify(json, null, 2), 'utf8', (err) =>
+        err && console.error('Error writing file:', err) || console.log('combined_2025 json generated successfully')
       );
     }
 
-    this.dir = `${__dirname}/data/2023`;
+    this.dir = `${__dirname}/data/2025`;
     this.result = this.readJsonFiles(this.dir);
   }
 
@@ -206,8 +207,8 @@ class reportsByAccount {
       },
       path: 'data'
     })
-    this.generateReport({ account: 'combined_2023', chartData, path: 'assets', type: 'bar' })
-    this.generateReport({ account: 'combined_2023', chartData, path: 'reports', pdfData: combinedData, type: 'bar' })
+    this.generateReport({ account: 'combined_2025', chartData, path: 'assets', type: 'bar' })
+    this.generateReport({ account: 'combined_2025', chartData, path: 'reports', pdfData: combinedData, type: 'bar' })
   }
 
   async generateIndividualReports() {
@@ -226,8 +227,8 @@ class reportsByAccount {
         labels: [...Object.keys(data.expense), ...Object.keys(data.income)],
       };
 
-      this.generateReport({ account: data.account, chartData, path: 'assets/2023', type: 'bar' })
-      this.generateReport({ account: data.account, chartData, path: 'reports/2023', pdfData: data, type: 'bar' })
+      this.generateReport({ account: data.account, chartData, path: 'assets/2025', type: 'bar' })
+      this.generateReport({ account: data.account, chartData, path: 'reports/2025', pdfData: data, type: 'bar' })
     })
   }
 
@@ -243,18 +244,19 @@ class reportsByAccount {
       const filePath = join(this.dir, f);
       const fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
 
+      data.push(fileData);
+
       // set colors by account
       if (!colorData.hasOwnProperty(fileData.account)) {
         colorData[fileData.account] = this.getRandomColor();
       }
 
-      data = [...Object.values(fileData.expense), ...Object.values(fileData.income)]
       const fileLabels = [...Object.keys(fileData.expense), ...Object.keys(fileData.income)]
 
       chartData.labels = fileLabels
       chartData.datasets.push({
         borderColor: 'transparent',
-        data: data.map((d, idx) => { return { x: chartData.labels[idx], y: d } }),
+        data: [...Object.values(fileData.expense), ...Object.values(fileData.income)].map((d, idx) => { return { x: chartData.labels[idx], y: d } }),
         fill: false,
         label: fileData.account.split('-')[0].trim(),
         pointBackgroundColor: colorData[fileData.account],
@@ -262,8 +264,8 @@ class reportsByAccount {
       })
     })
 
-    this.generateReport({ account: 'comparison_2023', chartData, path: 'assets', type: 'line' })
-    this.generateReport({ account: 'comparison_2023', chartData, path: 'reports', pdfData: data, type: 'line' })
+    this.generateReport({ account: 'comparison_2025', chartData, path: 'assets', type: 'line' })
+    this.generateReport({ account: 'comparison_2025', chartData, path: 'reports', pdfData: data, type: 'line' })
   }
 }
 

@@ -12,7 +12,8 @@ class transactionsByAccount {
             return formatted;
         }
 
-        this.accName = document.querySelector('.transactions-list-V2__account-picker__toggle__account-name').innerText;
+        // this.accName = document.querySelector('.transactions-list-V2__account-picker__toggle__account-name').innerText;
+        this.accName = document.querySelector('.wv-action-list__action-content.wv-action-list__action-content--label').innerText;
         this.nodeList = document.querySelectorAll('.transactions-list-v2__row');
         this.rows = Array.from(this.nodeList).map((r, idx) => {
             let amount, category;

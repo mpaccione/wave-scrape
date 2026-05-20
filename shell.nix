@@ -4,7 +4,15 @@
 pkgs.mkShell {
   buildInputs = [
     pkgs.libuuid
-    pkgs.nodejs_latest
+    pkgs.nodejs_20
+    pkgs.python3
+    pkgs.pkg-config
+    pkgs.cairo
+    pkgs.pango
+    pkgs.glib
+    pkgs.gdk-pixbuf
+    pkgs.libjpeg
+    pkgs.gifsicle
   ];
 
   APPEND_LIBRARY_PATH = "${pkgs.lib.makeLibraryPath [ pkgs.libuuid ]}";
